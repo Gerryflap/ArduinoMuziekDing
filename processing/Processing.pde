@@ -1,3 +1,4 @@
+import controlP5.*;
 import ddf.minim.*;
 import processing.serial.*; // Importing the serial library
 
@@ -15,15 +16,59 @@ String buffer; // A string named buffer is declared
 Serial port; // Serial is the name of the class and our port is called port
 Minim minim;
 AudioPlayer[] player = new AudioPlayer[7];
+//Define the new GUI
+ControlP5 gui;
 
 void setup() { 
   port = new Serial(this, Serial.list()[0], 9600); // Open the first port in the list (port 0) at 9600 Baud
-  size(400, 400);
+  size(500, 200);
   background(255); // Set the background color to white
   minim = new Minim(this); // pass this to Minim so it can load files from the data directory
 
   // load all files, located in the data folder
   player[3] = minim.loadFile("Albert - 104 BPM.mp3");
+
+  noStroke();
+  //Create the new GUI
+  gui = new ControlP5(this);
+  //Add a Button
+  gui.addButton("Music")
+    //Set the position of the button : (X,Y)
+    .setPosition(50, 50)
+      //Set the size of the button : (X,Y)
+      .setSize(100, 100)
+        //Set the pre-defined Value of the button : (int)
+        .setValue(0)
+          //set the way it is activated : RELEASE the mouseboutton or PRESS it
+          .activateBy(ControlP5.RELEASE);
+  ;
+  gui.addButton("Both")
+    .setPosition(200, 50)
+      .setSize(100, 100)
+        .setValue(1)
+          .activateBy(ControlP5.RELEASE);
+  ;
+  gui.addButton("Pulse")
+    .setPosition(350, 50)
+      .setSize(100, 100)
+        .setValue(2)
+          .activateBy(ControlP5.RELEASE);
+  ;
+}
+
+public void Music(int value) {
+  // This is the place for the code, that is activated by the buttonb
+  port.write("C0");
+}
+
+public void Both(int value) {
+  // This is the place for the code, that is activated by the buttonb
+  port.write("C1");
+}
+
+public void Pulse(int value) {
+  // This is the place for the code, that is activated by the buttonb
+  port.write("C2");
 }
 
 // The draw section (loops over and over again)
@@ -31,7 +76,7 @@ void draw() {
   while (port.available () > 0) { // Execute the code between the curly brackets when there is incoming serial data
     serialEvent(port.read()); // The serial data is being read
   }
-  
+
   // On/off button
   if (values[0] == 1) {
     // play the file from start to finish.
@@ -41,13 +86,13 @@ void draw() {
   } else if (values[0] == 0) {
     // stop playing
   }
-  
+
   // Cue slider: 0 = music only, 1 = both, 2 = pulse only
   if (values[1] == 0) {
     // stop pulse (done in Arduino)
-    player.play();
+    //player[1].play();
   } else if (values[1] == 1) {
-    player.play();
+    //player[1].play();
     // start pulse (done in Arduino)
   } else if (values[1] == 2) {
     stop();
@@ -57,9 +102,9 @@ void draw() {
   // Set the volume gain in decibel
   values[3] = constrain(values[3], 0, 40);
   float volume = map(values[3], 0, 40, -40, 0);
-  player.setGain(-15); 
-  
-  player.play();
+  //player[1].setGain(-15); 
+
+  //player[1].play();
 }
 
 void serialEvent(int serial) { // Function declaration, the integer serial gets the values of the serial data that's being send via port.read()
@@ -82,7 +127,7 @@ void serialEvent(int serial) { // Function declaration, the integer serial gets 
       // BPM
       else if (c == 'B') values[4] = Integer.parseInt(buffer); // Convert the string 'buffer' into an integer
 
-      buffer = ""; // The value of the string 'buffer' is cleared
+        buffer = ""; // The value of the string 'buffer' is cleared
     }
   } 
   catch(Exception e) { //when errors in the transmission occur, than print the sentence: "There is no valid data" in the message window
@@ -93,7 +138,7 @@ void serialEvent(int serial) { // Function declaration, the integer serial gets 
 void stop()
 {
   // always close Minim audio classes when you are done with them
-  player.close();
+  //player[1].close();
   minim.stop();
   super.stop();
 }
