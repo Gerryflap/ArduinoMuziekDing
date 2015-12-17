@@ -58,7 +58,7 @@ void checkForPlayButtonUpdate() {
 
 void updateBPM() {
   double input = analogRead(BPM_INPUT);
-  input *= 7.0/235;
+  input *= 7.0/1024;
   input = min(input, 6);
   input = max(input, 0);
   input = (int) input;
@@ -79,7 +79,8 @@ void updateBPM() {
 
 void updateVolume() {
   double input = analogRead(VOLUME_INPUT);
-  input *= 40.0/235;
+  
+  input *= 40.0/1024;
   input = min(input, 40);
   input = max(input, 0);
   input = (int) input;
@@ -163,6 +164,14 @@ void receiveFromComputer() {
 
 void setup() {
   Serial.begin(9600);
+  pinMode(9, OUTPUT);
+  pinMode(CONSTANT_VOLTAGE_PIN, OUTPUT);
+  pinMode(11, OUTPUT);
+  //pinMode(PULSE_MOTOR_PIN, OUTPUT);
+  pinMode(PLAY_BUTTON_PIN, INPUT);
+  pinMode(VOLUME_INPUT, INPUT);
+  pinMode(BPM_INPUT, INPUT);
+  analogReference(DEFAULT);
   //I put port 10 as a constant high port.
   digitalWrite(CONSTANT_VOLTAGE_PIN, HIGH);  
   digitalWrite(11, HIGH);
