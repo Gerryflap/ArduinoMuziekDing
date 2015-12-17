@@ -2,6 +2,7 @@
 const int PULSE_TIME = 100;           //Pulse time in milliseconds
 const int PULSE_MOTOR_PIN = 3;        //The pulse motor output
 const int BPM_INPUT = A0;             //The analog input for BPM
+const int VOLUME_INPUT = A2;
 const int PLAY_BUTTON_PIN = A1;       //Pin of play input
 const int CONSTANT_VOLTAGE_PIN = 10;  //Pin with a constant voltage
 
@@ -11,10 +12,13 @@ const int CONSTANT_VOLTAGE_PIN = 10;  //Pin with a constant voltage
 boolean isMotorOn = false;
 unsigned long lastMotorOn = 0;    //Holds the last time that the motor was on in milliseconds
 double bpm;
+double volume;
 boolean isPulseOn = false;
 boolean isMusicOn = true;
 boolean isPlaying = false;
 boolean playButtonInputHandled = false;
+int bpmAnalogCounter = 0;
+int volumeAnalogCounter = 0;
 
 
 /**
@@ -22,12 +26,8 @@ boolean playButtonInputHandled = false;
  */
 
 int getBPM() {
-  double input = analogRead(BPM_INPUT);
-  input = min(input, 10);
-  input = max(input, 0);
-  input = (int) (7 * input/10.0);
-  input = 5.0 * input + 89;
-  return input;
+  
+  return bpm;
 }
 
 int getPulseStrength() {
@@ -44,13 +44,56 @@ int getPulseStrength() {
  * These functions interact with the pins and update out model.
  */
 void checkForPlayButtonUpdate() {
-  boolean currentState = analogRead(PLAY_BUTTON_PIN) > 1000;
-  if (currentState = HIGH && !playButtonInputHandled) {
+  int value = analogRead(PLAY_BUTTON_PIN);
+  //Serial.println(value);
+  boolean currentState = value > 200;
+  if (currentState == HIGH && !playButtonInputHandled) {
     isPlaying = !isPlaying;
     playButtonInputHandled = true;
     sendPlayStatusUpdate(isPlaying);
   } else if (currentState == LOW) {
     playButtonInputHandled = false;
+  }
+}
+
+void updateBPM() {
+  double input = analogRead(BPM_INPUT);
+  input *= 7.0/235;
+  input = min(input, 6);
+  input = max(input, 0);
+  input = (int) input;
+  input = 5.0 * input + 89;
+  if (input != bpm) {
+    if (bpmAnalogCounter < 10) {
+      bpmAnalogCounter += 1;
+    } else {
+      bpm = input;
+      bpmAnalogCounter = 0;
+      sendBPM();
+    }
+  }
+  if (input == bpm) {
+    bpmAnalogCounter = 0;
+  }
+}
+
+void updateVolume() {
+  double input = analogRead(VOLUME_INPUT);
+  input *= 40.0/235;
+  input = min(input, 40);
+  input = max(input, 0);
+  input = (int) input;
+  if (input != volume) {
+    if (volumeAnalogCounter < 10) {
+      volumeAnalogCounter += 1;
+    } else {
+      volume = input;
+      volumeAnalogCounter = 0;
+      sendVolume();
+    }
+  }
+  if (input == volume) {
+    volumeAnalogCounter = 0;
   }
 }
 
@@ -85,9 +128,14 @@ void updateMotor() {
  * These methods handle communication between the computer and the aruino.
  */
 
- void sendBPM() {
+void sendBPM() {
   Serial.print("B");
   Serial.println(getBPM());  
+}
+
+void sendVolume() {
+  Serial.print("V");
+  Serial.println((int) volume);  
 }
 
 void sendPlayStatusUpdate(boolean value) {
@@ -116,14 +164,18 @@ void receiveFromComputer() {
 void setup() {
   Serial.begin(9600);
   //I put port 10 as a constant high port.
-  digitalWrite(CONSTANT_VOLTAGE_PIN, HIGH);
+  digitalWrite(CONSTANT_VOLTAGE_PIN, HIGH);  
+  digitalWrite(11, HIGH);
+  digitalWrite(9, HIGH);
+
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  sendBPM();  
   checkForPlayButtonUpdate();
-  updateMotor();
+  updateBPM();
+  updateVolume();
+  //updateMotor();
 
 }
 
