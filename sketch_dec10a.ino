@@ -1,16 +1,18 @@
 
-const int PULSE_TIME = 100;
-const int PULSE_MOTOR_PIN = 3;
+const int PULSE_TIME = 100;       //Pulse time in milliseconds
+const int PULSE_MOTOR_PIN = 3;    //The pulse motor output
+const int BPM_INPUT = A0;         //The analog input for BPM
 
-double a;
+
+
 boolean isMotorOn = false;
-unsigned long lastMotorOn = 0; 
+unsigned long lastMotorOn = 0;    //Holds the last time that the motor was on in milliseconds
 double bpm;
 
 
 
 int getBPM() {
-  return analogRead(A0);
+  return analogRead(BPM_INPUT);
 }
 
 int getPulseStrength() {
@@ -23,14 +25,21 @@ void sendBPM() {
 }
 
 void updateMotor() {
+  //Calculates the time between 2 pulses given the BPM
   double pulseFrequency = (60 * 1000.0)/((double) getBPM());
   int currentTime = millis();
+
+  
   if (currentTime - lastMotorOn > pulseFrequency) {
+    //if the motor should be on again, turn it on and update the isMotorOn value
     lastMotorOn = currentTime;
     isMotorOn = true;
     analogWrite(PULSE_MOTOR_PIN, getPulseStrength());    
   } else if (currentTime - lastMotorOn > PULSE_TIME) {
+   
+    //If the motor should be off...
     if (isMotorOn) {
+      //... and if the motor is on, stop it and set isMotorOn to false;
       analogWrite(PULSE_MOTOR_PIN, 0); 
       isMotorOn = false;
     }
@@ -40,6 +49,7 @@ void updateMotor() {
 
 void setup() {
   Serial.begin(9600);
+  //I put port 10 as a constant high port.
   digitalWrite(10, HIGH);
 }
 
