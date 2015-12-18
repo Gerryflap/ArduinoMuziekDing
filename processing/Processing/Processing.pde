@@ -20,12 +20,12 @@ Minim minim;
 AudioPlayer[] player = new AudioPlayer[7]; // 7 possible BPMs, so 7 samples
 ControlP5 gui; // Define the new GUI
 Textarea BPM;
+int index = 0;
 
 void setup() { 
   
   port = new Serial(this, Serial.list()[Serial.list().length - 1], 9600); // Open the first port in the list (port 0) at 9600 Baud
   size(500, 400);
-  background(255); // Set the background color to white
   minim = new Minim(this); // pass this to Minim so it can load files from the data directory
 
   // load all files, located in the data folder
@@ -70,9 +70,9 @@ void setup() {
           .activateBy(ControlP5.RELEASE);
   ;
   BPM = gui.addTextarea("BPM")
-    .setPosition(100, 280)
+    .setPosition(50, 280)
       .setText("BPM: ")
-        .setSize(300, 300)
+         .setSize(400, 300)
           .setFont(createFont("Arial", 65))
             .setColorValue(0xff003652);
   ;
@@ -80,10 +80,11 @@ void setup() {
 
 // The draw section (loops over and over again)
 void draw() {
+    background(255); // Set the background color to white
+
   while (port.available () > 0) { // Execute the code between the curly brackets when there is incoming serial data
     serialEvent(port.read()); // The serial data is being read
   }
-  redraw();
   OnOff();
   setPulse();
   setVolume();
@@ -139,7 +140,7 @@ void setVolume() {
 void setBPM() { 
   BPM.setText("BPM: " + values[4]);
   // set the right index in the array of audio samples
-  int index = (values[4]-89)/5;
+  index = (values[4]-89)/5;
   // set corresponding music file
 }
 
