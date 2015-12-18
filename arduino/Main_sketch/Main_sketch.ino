@@ -111,8 +111,6 @@ void updateMotor() {
       lastMotorOn = currentTime;
       isMotorOn = true;
       analogWrite(PULSE_MOTOR_PIN, getPulseStrength());
-      Serial.print("Motor activated ");  
-      Serial.println(getPulseStrength());  
     } else if (currentTime - lastMotorOn > PULSE_TIME) {
      
       //If the motor should be off...

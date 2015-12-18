@@ -22,7 +22,8 @@ ControlP5 gui; // Define the new GUI
 Textarea BPM;
 
 void setup() { 
-  port = new Serial(this, Serial.list()[0], 9600); // Open the first port in the list (port 0) at 9600 Baud
+  
+  port = new Serial(this, Serial.list()[Serial.list().length - 1], 9600); // Open the first port in the list (port 0) at 9600 Baud
   size(500, 400);
   background(255); // Set the background color to white
   minim = new Minim(this); // pass this to Minim so it can load files from the data directory
@@ -62,6 +63,12 @@ void setup() {
         .setValue(2)
           .activateBy(ControlP5.RELEASE);
   ;
+  gui.addButton("Sync")
+    .setPosition(200, 200)
+      .setSize(100, 50)
+        .setValue(2)
+          .activateBy(ControlP5.RELEASE);
+  ;
   BPM = gui.addTextarea("BPM")
     .setPosition(100, 280)
       .setText("BPM: ")
@@ -76,7 +83,7 @@ void draw() {
   while (port.available () > 0) { // Execute the code between the curly brackets when there is incoming serial data
     serialEvent(port.read()); // The serial data is being read
   }
-  
+  redraw();
   OnOff();
   setPulse();
   setVolume();
@@ -97,6 +104,7 @@ void OnOff() {
 }
 
 public void Music(int value) {
+  port.write("C0");
   values[1] = 0;
 }
 
@@ -112,6 +120,10 @@ public void Pulse(int value) {
   values[1] = 2;
 }
 
+public void Sync(int value) {
+  port.write("SBPM"); 
+}
+
 void setPulse() {
   // this is done in Arduino
 }
@@ -124,7 +136,7 @@ void setVolume() {
   //player[1].play();
 }
 
-void setBPM() {
+void setBPM() { 
   BPM.setText("BPM: " + values[4]);
   // set the right index in the array of audio samples
   int index = (values[4]-89)/5;
