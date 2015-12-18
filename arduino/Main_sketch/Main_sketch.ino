@@ -19,6 +19,7 @@ boolean isPlaying = false;
 boolean playButtonInputHandled = false;
 int bpmAnalogCounter = 0;
 int volumeAnalogCounter = 0;
+double pulseFrequency;
 
 
 /**
@@ -32,7 +33,7 @@ int getBPM() {
 
 int getPulseStrength() {
   if (isPulseOn) {
-    return 200;
+    return 255;
   } else {
     return 0;
   }
@@ -68,8 +69,9 @@ void updateBPM() {
       bpmAnalogCounter += 1;
     } else {
       bpm = input;
-      bpmAnalogCounter = 0;
       sendBPM();
+      bpmAnalogCounter = 0;
+      pulseFrequency = (60 * 1000.0)/((double) getBPM());
     }
   }
   if (input == bpm) {
@@ -101,7 +103,6 @@ void updateVolume() {
 void updateMotor() {
   if (isPlaying) {
     //Calculates the time between 2 pulses given the BPM
-    double pulseFrequency = (60 * 1000.0)/((double) getBPM());
     int currentTime = millis();
   
     
@@ -109,7 +110,9 @@ void updateMotor() {
       //if the motor should be on again, turn it on and update the isMotorOn value
       lastMotorOn = currentTime;
       isMotorOn = true;
-      analogWrite(PULSE_MOTOR_PIN, getPulseStrength());    
+      analogWrite(PULSE_MOTOR_PIN, getPulseStrength());
+      Serial.print("Motor activated ");  
+      Serial.println(getPulseStrength());  
     } else if (currentTime - lastMotorOn > PULSE_TIME) {
      
       //If the motor should be off...
@@ -122,6 +125,12 @@ void updateMotor() {
   } else {
     lastMotorOn = 0;
   }
+}
+
+void syncMotor(unsigned long syncTime) {
+    lastMotorOn = syncTime - pulseFrequency;
+    isMotorOn = false;
+    updateMotor();
 }
 
 /**
@@ -146,6 +155,7 @@ void sendPlayStatusUpdate(boolean value) {
 
 void receiveFromComputer() {
  if (Serial.available()) {
+    unsigned long currentTime = millis();
     String received = Serial.readString();
     if (received.charAt(0) == 'C') {
       int mode = received.substring(1,2).toInt();
@@ -154,6 +164,8 @@ void receiveFromComputer() {
       } else {
         isPulseOn = true;
       }
+    } else if (received.equals("SBPM")) {
+      syncMotor(currentTime);
     }
   }
 }
@@ -167,7 +179,7 @@ void setup() {
   pinMode(9, OUTPUT);
   pinMode(CONSTANT_VOLTAGE_PIN, OUTPUT);
   pinMode(11, OUTPUT);
-  //pinMode(PULSE_MOTOR_PIN, OUTPUT);
+  pinMode(PULSE_MOTOR_PIN, OUTPUT);
   pinMode(PLAY_BUTTON_PIN, INPUT);
   pinMode(VOLUME_INPUT, INPUT);
   pinMode(BPM_INPUT, INPUT);
@@ -181,10 +193,13 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  
+  receiveFromComputer();
   checkForPlayButtonUpdate();
   updateBPM();
   updateVolume();
-  //updateMotor();
+  updateMotor();
+  
 
 }
 
