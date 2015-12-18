@@ -24,7 +24,8 @@ int index = 0;
 
 void setup() { 
   
-  port = new Serial(this, Serial.list()[Serial.list().length - 1], 9600); // Open the first port in the list (port 0) at 9600 Baud
+  port = new Serial(this, Serial.list()[Serial.list().length - 1], 9600); // Open the last port in the list at 9600 Baud
+  //port = new Serial(this, Serial.list()[0], 9600); // Open the first port in the list (port 0) at 9600 Baud
   size(500, 400);
   minim = new Minim(this); // pass this to Minim so it can load files from the data directory
 

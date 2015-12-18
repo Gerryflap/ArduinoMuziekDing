@@ -164,6 +164,10 @@ void receiveFromComputer() {
       }
     } else if (received.equals("SBPM")) {
       syncMotor(currentTime);
+    } else if (received.equals("UPDATE")) {
+      sendPlayStatusUpdate(isPlaying);
+      sendBPM();
+      sendVolume();
     }
   }
 }
