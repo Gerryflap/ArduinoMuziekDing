@@ -5,13 +5,13 @@ import processing.serial.*;
 /* 6 options in the values array:
  0 = on/off (play/pause) -> push button
  1 = cue slider -> we do that ourselves from behind the laptop (GUI)
-     0 > music only, 1 > both, 2 > pulse only
+ 0 > music only, 1 > both, 2 > pulse only
  2 = pulse button (0-4) -> push button
  3 = volume (0-40) -> analog slider
  4 = BPM (89-119) -> analog slider
  (5 = music button -> not necessary in hi-fi prototype)
-*/
- 
+ */
+
 int[] values = new int[5];
 int volume = 0;
 String buffer; // A string named buffer is declared
@@ -21,11 +21,13 @@ AudioPlayer[] player = new AudioPlayer[7]; // 7 possible BPMs, so 7 samples
 ControlP5 gui; // Define the new GUI
 Textarea BPM;
 int index = 0;
+int position = 0;
 
 void setup() { 
   
   port = new Serial(this, Serial.list()[Serial.list().length - 1], 9600); // Open the last port in the list at 9600 Baud
   //port = new Serial(this, Serial.list()[0], 9600); // Open the first port in the list (port 0) at 9600 Baud
+
   size(500, 400);
   minim = new Minim(this); // pass this to Minim so it can load files from the data directory
 
@@ -37,6 +39,8 @@ void setup() {
   player[4] = minim.loadFile("Albert - 109 BPM3.wav");
   player[5] = minim.loadFile("Albert - 114 BPM3.wav");
   player[6] = minim.loadFile("Albert - 119 BPM3.wav");
+
+  values[4] = 89; // Initialize default BPM
 
   noStroke();
   //Create the new GUI
@@ -73,7 +77,7 @@ void setup() {
   BPM = gui.addTextarea("BPM")
     .setPosition(50, 280)
       .setText("BPM: ")
-         .setSize(400, 300)
+        .setSize(400, 300)
           .setFont(createFont("Arial", 65))
             .setColorValue(0xff003652);
   ;
@@ -81,11 +85,12 @@ void setup() {
 
 // The draw section (loops over and over again)
 void draw() {
-    background(255); // Set the background color to white
+  background(255); // Set the background color to white
 
   while (port.available () > 0) { // Execute the code between the curly brackets when there is incoming serial data
     serialEvent(port.read()); // The serial data is being read
   }
+
   OnOff();
   setPulse();
   setVolume();
@@ -98,11 +103,16 @@ void OnOff() {
     // play the file from start to finish.
     // if you want to play the file again, 
     // you need to call rewind() first.
-    //player.play();
-  } else if (values[0] == 0) {
-    // stop playing
-   // minimStop();
-  }
+    if (values[0] == 1 && (values[1] == 0 || values[1] == 1)) {
+      //player[index].cue(position);
+      player[index].play();
+    }
+    println("On");
+  } else if (values[0] == 0 || values[1] == 2) {
+      player[index].pause();
+  } /*else if (values[0] == 0) {
+      println("Off");
+  }*/
 }
 
 public void Music(int value) {
@@ -123,7 +133,7 @@ public void Pulse(int value) {
 }
 
 public void Sync(int value) {
-  port.write("SBPM"); 
+  port.write("SBPM");
 }
 
 void setPulse() {
@@ -133,15 +143,20 @@ void setPulse() {
 void setVolume() {
   // Set the volume gain in decibel
   int volume = int(map(values[3], 0, 40, -40, 0));
-  //player[1].setGain(volume); 
-
-  //player[1].play();
+  player[index].setGain(volume);
 }
 
 void setBPM() { 
   BPM.setText("BPM: " + values[4]);
   // set the right index in the array of audio samples
-  index = (values[4]-89)/5;
+  //player[index].pause();
+  int new_index = (values[4]-89)/5;
+  position = player[index].position();
+  position = int(position/float(player[index].length()) * float(player[new_index].length()));
+  
+  if (values[0] == 1 && (values[1] == 0 || values[1] == 1)) {
+    player[index].cue(position);
+  }
   // set corresponding music file
 }
 
