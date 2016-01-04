@@ -22,12 +22,10 @@ ControlP5 gui; // Define the new GUI
 Textarea BPM;
 int index = 0;
 int position = 0;
+int oldBPM = 89;
 
 void setup() { 
-  
-  port = new Serial(this, Serial.list()[Serial.list().length - 1], 9600); // Open the last port in the list at 9600 Baud
-  //port = new Serial(this, Serial.list()[0], 9600); // Open the first port in the list (port 0) at 9600 Baud
-
+  port = new Serial(this, Serial.list()[Serial.list().length - 1], 9600); // Open the first port in the list (port 0) at 9600 Baud
   size(500, 400);
   minim = new Minim(this); // pass this to Minim so it can load files from the data directory
 
@@ -81,6 +79,8 @@ void setup() {
           .setFont(createFont("Arial", 65))
             .setColorValue(0xff003652);
   ;
+  
+  values[1] = 0; // Initialize cue slides on music only
 }
 
 // The draw section (loops over and over again)
@@ -104,15 +104,12 @@ void OnOff() {
     // if you want to play the file again, 
     // you need to call rewind() first.
     if (values[0] == 1 && (values[1] == 0 || values[1] == 1)) {
-      //player[index].cue(position);
       player[index].play();
     }
     println("On");
   } else if (values[0] == 0 || values[1] == 2) {
-      player[index].pause();
-  } /*else if (values[0] == 0) {
-      println("Off");
-  }*/
+    player[index].pause();
+  }
 }
 
 public void Music(int value) {
@@ -149,15 +146,18 @@ void setVolume() {
 void setBPM() { 
   BPM.setText("BPM: " + values[4]);
   // set the right index in the array of audio samples
-  //player[index].pause();
   int new_index = (values[4]-89)/5;
   position = player[index].position();
   position = int(position/float(player[index].length()) * float(player[new_index].length()));
-  
-  if (values[0] == 1 && (values[1] == 0 || values[1] == 1)) {
-    player[index].cue(position);
-  }
+
   // set corresponding music file
+  if (values[4] != oldBPM) {
+    player[index].pause();
+    player[new_index].cue(position);
+    index = new_index;
+  }
+
+  oldBPM = values[4];
 }
 
 void minimStop()
