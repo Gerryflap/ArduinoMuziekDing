@@ -9,8 +9,6 @@ void serialEvent(int serial) { // Function declaration, the integer serial gets 
 
       // On/off
       if (c == 'O') values[0] = Integer.parseInt(buffer); // Convert the string 'buffer' into an integer
-      // Cue slider
-      //else if (c == 'C') values[1] = Integer.parseInt(buffer); // Convert the string 'buffer' into an integer
       // Pulse
       else if (c == 'P') values[2] = Integer.parseInt(buffer); // Convert the string 'buffer' into an integer
       // Volume
