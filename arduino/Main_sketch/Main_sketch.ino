@@ -1,5 +1,5 @@
 
-const int PULSE_TIME = 100;           //Pulse time in milliseconds
+const double PULSE_TIME = 0.25;        //Pulse time 
 const int PULSE_MOTOR_PIN = 3;        //The pulse motor output
 const int BPM_INPUT = A0;             //The analog input for BPM
 const int VOLUME_INPUT = A2;
@@ -109,9 +109,10 @@ void updateMotor() {
     if (currentTime - lastMotorOn > pulseFrequency) {
       //if the motor should be on again, turn it on and update the isMotorOn value
       lastMotorOn = currentTime;
+
       isMotorOn = true;
       analogWrite(PULSE_MOTOR_PIN, getPulseStrength());
-    } else if (currentTime - lastMotorOn > PULSE_TIME) {
+    } else if (currentTime - lastMotorOn > PULSE_TIME * pulseFrequency) {
      
       //If the motor should be off...
       if (isMotorOn) {
@@ -122,12 +123,17 @@ void updateMotor() {
     }
   } else {
     lastMotorOn = 0;
+    if (isMotorOn) {
+        analogWrite(PULSE_MOTOR_PIN, 0); 
+        isMotorOn = false;
+    }
   }
 }
 
 void syncMotor(unsigned long syncTime) {
     lastMotorOn = syncTime - pulseFrequency;
     isMotorOn = false;
+    analogWrite(PULSE_MOTOR_PIN, 0);
     updateMotor();
 }
 
