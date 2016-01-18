@@ -37,6 +37,11 @@ void setup() {
   player[4] = minim.loadFile("Albert - 109 BPM3.wav");
   player[5] = minim.loadFile("Albert - 114 BPM3.wav");
   player[6] = minim.loadFile("Albert - 119 BPM3.wav");
+  
+  for (int i = 0; i < player.length; i++) {
+    player[i].setLoopPoints(0, player[i].length()); 
+    System.out.println(player[i].length());
+  }
 
   values[4] = 89; // Initialize default BPM
 
@@ -92,6 +97,7 @@ void draw() {
   }
 
   OnOff();
+  loopAudio();
   setPulse();
   setVolume();
   setBPM();
@@ -158,6 +164,12 @@ void setBPM() {
   }
 
   oldBPM = values[4];
+}
+
+void loopAudio() {
+  if (player[index].position() == player[index].length()) {
+    player[index].rewind();    
+  }
 }
 
 void minimStop()
